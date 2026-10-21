@@ -2,6 +2,8 @@
 
 一个不需要注册、打开就能用的手机记账应用。先设置初始可用金额，之后每记一笔开销，余额会自动扣除，并明确显示剩余可用资金。
 
+> **在线使用：** <https://dr-jhr.github.io/yuji-ledger/>
+
 <p align="center">
   <img src="preview/03-after-expense.png" width="300" alt="余记首页：记账后自动扣减并显示剩余可用资金">
   <img src="preview/05-stats.png" width="300" alt="余记统计页：分类占比和近 7 天趋势">
