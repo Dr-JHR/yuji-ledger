@@ -54,6 +54,7 @@ node server.mjs --port 4780
 
 - iPhone Safari：分享 → 添加到主屏幕。
 - Android Chrome / Edge：菜单 → 安装应用 / 添加到主屏幕。
+- 也可以打开应用，进入“设置 → 安装到主屏幕”，按页面提示操作。
 
 ## 数据说明
 

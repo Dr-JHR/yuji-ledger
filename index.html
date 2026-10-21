@@ -387,6 +387,22 @@
         </div>
       </div>
 
+      <div class="settings-card" id="installCard">
+        <button class="settings-row" id="installAppBtn" type="button">
+          <span class="setting-icon" aria-hidden="true">
+            <svg class="icon"><use href="#i-phone"></use></svg>
+          </span>
+          <span class="setting-copy"><strong>安装到主屏幕</strong><small>像 App 一样打开，支持离线使用</small></span>
+          <span class="setting-value setting-value--tag" id="installState">安装</span>
+        </button>
+        <div class="install-hint" id="installHint" hidden>
+          <p><strong>iPhone / iPad</strong>：用 Safari 打开，点底部“分享”按钮 → “添加到主屏幕”。</p>
+          <p><strong>Android</strong>：打开浏览器菜单 → “安装应用”或“添加到主屏幕”。</p>
+          <p><strong>电脑</strong>：点击地址栏右侧的安装图标，或浏览器菜单中的“安装”。</p>
+          <p class="install-hint-note">安装后可像普通 App 一样从桌面打开，已访问过的页面可离线使用。</p>
+        </div>
+      </div>
+
       <p class="settings-note">
         <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
         所有账单仅存储在当前浏览器的本地空间。清除浏览器数据、使用无痕模式或更换设备都可能导致记录丢失，建议定期导出备份。
@@ -408,6 +424,7 @@
     <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10" width="15" height="10.5" rx="2.5"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10"/></symbol>
     <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3.5 7.5A2.5 2.5 0 0 1 6 5h12a2 2 0 0 1 2 2v12H6a2.5 2.5 0 0 1-2.5-2.5v-9Z"/><path d="M3.5 8.5h14A2.5 2.5 0 0 1 20 11v3h-4.5a2 2 0 0 1 0-4H20"/></symbol>
     <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10 5h4M10.5 18.5h3"/></symbol>
     <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6.5 7l.8 13h9.4l.8-13M10 11v5M14 11v5"/></symbol>
     <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></symbol>
     <symbol id="i-note" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></symbol>

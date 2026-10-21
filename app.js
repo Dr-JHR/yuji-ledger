@@ -41,6 +41,10 @@
   let balanceAnimation = 0;
   let exportLabelTimer = 0;
   let lastFocusedBeforeWelcome = null;
+  let deferredInstallPrompt = null;
+  const isIosDevice =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const moneyFormatter = new Intl.NumberFormat("zh-CN", {
@@ -55,6 +59,7 @@
     loadState();
     buildCategoryGrid();
     bindEvents();
+    initInstallUI();
     fillExpenseTime();
     renderAll();
     setupWelcome();
@@ -141,6 +146,10 @@
       clearCount: byId("clearCount"),
       cancelClearBtn: byId("cancelClearBtn"),
       confirmClearBtn: byId("confirmClearBtn"),
+      installCard: byId("installCard"),
+      installAppBtn: byId("installAppBtn"),
+      installState: byId("installState"),
+      installHint: byId("installHint"),
       toast: byId("toast"),
       toastTitle: byId("toastTitle"),
       toastBody: byId("toastBody"),
@@ -203,6 +212,7 @@
     els.clearRow.addEventListener("click", toggleClearConfirm);
     els.cancelClearBtn.addEventListener("click", () => toggleClearConfirm(false));
     els.confirmClearBtn.addEventListener("click", clearAllExpenses);
+    els.installAppBtn.addEventListener("click", handleInstallClick);
 
     els.prevMonthBtn.addEventListener("click", () => changeStatsMonth(-1));
     els.nextMonthBtn.addEventListener("click", () => changeStatsMonth(1));
@@ -1011,7 +1021,59 @@
     toggleClearConfirm(false);
     els.settingsError.textContent = "";
     els.exportBtn.querySelector(".setting-copy small").textContent = "下载 CSV，可用表格软件打开";
+    if (!isStandaloneApp()) {
+      els.installHint.hidden = true;
+      els.installState.textContent = deferredInstallPrompt ? "安装" : isIosDevice ? "步骤" : "安装";
+    }
     openSheet(els.settingsSheet, trigger);
+  }
+
+  function isStandaloneApp() {
+    return (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true
+    );
+  }
+
+  function initInstallUI() {
+    if (isStandaloneApp()) {
+      els.installCard.hidden = true;
+      return;
+    }
+    if (isIosDevice) els.installState.textContent = "步骤";
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      els.installState.textContent = "安装";
+    });
+    window.addEventListener("appinstalled", handleAppInstalled);
+  }
+
+  async function handleInstallClick() {
+    if (deferredInstallPrompt) {
+      const prompt = deferredInstallPrompt;
+      deferredInstallPrompt = null;
+      els.installState.textContent = "安装";
+      prompt.prompt();
+      const choice = await prompt.userChoice.catch(() => null);
+      if (!choice || choice.outcome !== "accepted") {
+        els.installState.textContent = isIosDevice ? "步骤" : "安装";
+      }
+      return;
+    }
+
+    const willShow = els.installHint.hidden;
+    els.installHint.hidden = !willShow;
+    els.installState.textContent = willShow ? "收起" : isIosDevice ? "步骤" : "安装";
+    if (willShow) {
+      els.installHint.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }
+
+  function handleAppInstalled() {
+    els.installCard.hidden = true;
+    if (activeSheet === els.settingsSheet) closeSheet();
+    showToast("已安装到主屏幕", "以后从桌面图标直接打开余记");
   }
 
   function toggleInitialEditor(force) {

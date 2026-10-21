@@ -2148,6 +2148,31 @@ svg {
   transform: rotate(-90deg);
 }
 
+.install-hint {
+  padding: 13px;
+  background: rgba(245, 241, 232, 0.45);
+  border-top: 1px solid var(--line);
+}
+
+.install-hint p {
+  margin: 0 0 7px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.install-hint p strong {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.install-hint p.install-hint-note {
+  margin: 9px 0 0;
+  padding-top: 9px;
+  color: var(--muted-light);
+  border-top: 1px solid var(--line);
+}
+
 .inline-editor {
   padding: 0 13px 14px;
   border-top: 1px solid var(--line);
