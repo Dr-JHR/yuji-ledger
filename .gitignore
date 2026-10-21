@@ -1,0 +1,12 @@
+# Local runtime and test artifacts
+.edge-test/
+screenshots/
+node_modules/
+*.log
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

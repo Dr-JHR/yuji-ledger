@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f1e8">
+  <meta name="description" content="余记：先设置初始金额，每记一笔开销自动扣减并显示剩余可用资金。">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="余记">
+  <title>余记 · 手机记账</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="brand" aria-label="余记">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m7 5 5 6 5-6"></path>
+            <path d="M12 11v8"></path>
+            <path d="M8.5 13.5h7"></path>
+            <path d="M8.5 16h7"></path>
+          </svg>
+        </span>
+        <span class="brand-copy">
+          <strong>余记</strong>
+          <small>YUJI</small>
+        </span>
+      </div>
+      <button class="round-btn" id="settingsBtn" type="button" aria-label="打开设置">
+        <svg class="icon" aria-hidden="true"><use href="#i-settings"></use></svg>
+      </button>
+    </header>
+
+    <main class="main" id="main" tabindex="-1">
+      <section class="view" id="ledgerView" aria-label="账单明细">
+        <h1 class="sr-only">余记账单明细</h1>
+        <article class="balance-card" id="balanceCard" aria-labelledby="balanceLabel">
+          <div class="balance-glow" aria-hidden="true"></div>
+          <div class="balance-ring balance-ring--one" aria-hidden="true"></div>
+          <div class="balance-ring balance-ring--two" aria-hidden="true"></div>
+          <div class="balance-head">
+            <span class="balance-label" id="balanceLabel">可用余额</span>
+            <span class="status-pill status--good" id="balanceStatus"><i></i><span>预算充足</span></span>
+          </div>
+          <div class="balance-amount" id="balanceAmount">
+            <span class="balance-currency" id="balanceCurrency">¥</span><span class="balance-value" id="balanceValue">0.00</span>
+          </div>
+          <p class="balance-caption" id="balanceCaption">设置初始金额，开始记录第一笔</p>
+
+          <div class="budget-meter" aria-hidden="true">
+            <div class="budget-meta">
+              <span>预算进度</span>
+              <span id="usedPercent">0%</span>
+            </div>
+            <div class="budget-track"><span id="budgetBar"></span></div>
+          </div>
+
+          <div class="balance-stats">
+            <div class="balance-stat">
+              <span>初始金额</span>
+              <strong id="initialAmount">¥0.00</strong>
+            </div>
+            <span class="balance-divider" aria-hidden="true"></span>
+            <div class="balance-stat">
+              <span>累计支出</span>
+              <strong id="totalSpent">¥0.00</strong>
+            </div>
+          </div>
+        </article>
+
+        <button class="add-btn" id="addExpenseBtn" type="button">
+          <span class="add-btn-icon" aria-hidden="true">
+            <svg class="icon"><use href="#i-plus"></use></svg>
+          </span>
+          <span class="add-btn-copy"><strong>记一笔</strong><small>自动扣减并更新余额</small></span>
+          <span class="add-btn-arrow" aria-hidden="true">
+            <svg class="icon"><use href="#i-arrow-up-right"></use></svg>
+          </span>
+        </button>
+
+        <section class="records-section" aria-labelledby="recordsTitle">
+          <div class="section-head">
+            <div>
+              <h2 id="recordsTitle">最近支出</h2>
+              <p id="recordSummary">还没有支出记录</p>
+            </div>
+            <span class="section-rule" aria-hidden="true"></span>
+          </div>
+
+          <div class="expense-list" id="expenseList"></div>
+
+          <div class="empty-state" id="emptyState">
+            <div class="empty-art" aria-hidden="true">
+              <span class="empty-coin empty-coin--back"></span>
+              <span class="empty-coin empty-coin--front">¥</span>
+              <span class="empty-spark empty-spark--one"></span>
+              <span class="empty-spark empty-spark--two"></span>
+            </div>
+            <h3>钱包还静悄悄</h3>
+            <p>记下第一笔开销，看看还能花多少。</p>
+            <button class="ghost-btn" id="emptyAddBtn" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>
+              记第一笔
+            </button>
+          </div>
+        </section>
+
+        <p class="local-note">
+          <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+          账单只保存在这台设备上
+        </p>
+      </section>
+
+      <section class="view" id="statsView" aria-label="支出统计" hidden>
+        <div class="page-head">
+          <div>
+            <p class="eyebrow">开销分析</p>
+            <h1 id="statsMonthTitle">2026年10月</h1>
+          </div>
+          <div class="month-switch" aria-label="切换月份">
+            <button class="month-btn" id="prevMonthBtn" type="button" aria-label="上个月">
+              <svg class="icon icon--flip" aria-hidden="true"><use href="#i-chevron"></use></svg>
+            </button>
+            <button class="month-btn" id="nextMonthBtn" type="button" aria-label="下个月">
+              <svg class="icon" aria-hidden="true"><use href="#i-chevron"></use></svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="statsContent">
+          <article class="stat-summary">
+            <div class="stat-summary-top">
+              <span id="monthSpentLabel">本月支出</span>
+              <span class="stat-badge">MONTH</span>
+            </div>
+            <strong class="stat-total" id="monthSpent">¥0.00</strong>
+            <div class="stat-summary-foot">
+              <span id="monthCount">0 笔支出</span>
+              <span id="monthDaily">日均 ¥0.00</span>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <h2>花到哪里了</h2>
+              <span id="topCategory">暂无数据</span>
+            </div>
+            <div class="category-wrap">
+              <div class="donut" id="donut" role="img" aria-label="支出分类占比">
+                <div class="donut-hole">
+                  <span id="donutPeriodLabel">本月支出</span>
+                  <strong id="donutCount">0 笔</strong>
+                </div>
+              </div>
+              <div class="legend" id="legend"></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <h2 id="trendTitle">近 7 天</h2>
+              <span id="trendTotal">合计 ¥0.00</span>
+            </div>
+            <div class="trend" id="trendChart"></div>
+          </article>
+        </div>
+
+        <div class="empty-state empty-state--stats" id="statsEmpty" hidden>
+          <div class="empty-art empty-art--chart" aria-hidden="true">
+            <span class="mini-bar mini-bar--one"></span>
+            <span class="mini-bar mini-bar--two"></span>
+            <span class="mini-bar mini-bar--three"></span>
+          </div>
+          <h3>这个月还没有支出</h3>
+          <p>等你记下第一笔，这里就会长出图表。</p>
+          <button class="ghost-btn" id="statsAddBtn" type="button">
+            <svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>
+            去记一笔
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <nav class="tabbar" aria-label="主要导航">
+      <button class="tab is-active" type="button" data-view="ledger" aria-current="page">
+        <svg class="icon" aria-hidden="true"><use href="#i-list"></use></svg>
+        <span>明细</span>
+        <i class="tab-dot" aria-hidden="true"></i>
+      </button>
+      <button class="tab" type="button" data-view="stats">
+        <svg class="icon" aria-hidden="true"><use href="#i-chart"></use></svg>
+        <span>统计</span>
+        <i class="tab-dot" aria-hidden="true"></i>
+      </button>
+    </nav>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true">
+      <span class="toast-icon" aria-hidden="true">
+        <svg class="icon"><use href="#i-check"></use></svg>
+      </span>
+      <div class="toast-copy">
+        <strong id="toastTitle">已保存</strong>
+        <span id="toastBody"></span>
+      </div>
+      <button class="toast-close" id="toastClose" type="button" aria-label="关闭提示">
+        <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="welcome-layer is-open" id="welcomeLayer" aria-hidden="false">
+    <div class="welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+      <div class="welcome-mark" aria-hidden="true">
+        <span class="welcome-coin">¥</span>
+        <span class="welcome-leaf"></span>
+      </div>
+      <p class="eyebrow">YUJI · 轻记账</p>
+      <h1 id="welcomeTitle">先定下<br><em>能花多少</em></h1>
+      <p class="welcome-copy">设置初始金额。之后每记一笔开销，余额都会自动扣减，并清楚告诉你还剩多少。</p>
+
+      <form id="welcomeForm" novalidate>
+        <label class="field-label" for="welcomeAmount">初始可用金额</label>
+        <div class="money-field money-field--lg">
+          <span aria-hidden="true">¥</span>
+          <input id="welcomeAmount" name="amount" type="text" inputmode="decimal" autocomplete="off" placeholder="5,000.00" aria-describedby="welcomeError">
+        </div>
+        <div class="quick-chips" aria-label="快捷金额">
+          <button type="button" data-quick="1000">¥1,000</button>
+          <button type="button" data-quick="3000">¥3,000</button>
+          <button type="button" data-quick="5000">¥5,000</button>
+          <button type="button" data-quick="10000">¥10,000</button>
+        </div>
+        <p class="field-error" id="welcomeError" role="alert"></p>
+        <button class="primary-btn" id="welcomeStart" type="submit" disabled>开始记账</button>
+      </form>
+
+      <p class="privacy-note">
+        <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+        数据只保存在本机浏览器，不会上传
+      </p>
+    </div>
+  </div>
+
+  <div class="sheet-layer" id="sheetLayer" aria-hidden="true" inert>
+    <div class="sheet-backdrop" data-close-sheet="1"></div>
+
+    <section class="sheet" id="addSheet" role="dialog" aria-modal="true" aria-labelledby="addTitle" hidden>
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-head">
+        <div>
+          <p class="eyebrow">NEW EXPENSE</p>
+          <h2 id="addTitle">记一笔</h2>
+        </div>
+        <button class="close-btn" type="button" data-close-sheet="1" aria-label="关闭记账面板">
+          <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+        </button>
+      </header>
+
+      <form id="expenseForm" novalidate>
+        <div class="amount-entry">
+          <span class="amount-symbol" aria-hidden="true">¥</span>
+          <input id="expenseAmount" name="amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-label="支出金额" aria-describedby="amountPreview">
+        </div>
+        <p class="amount-preview" id="amountPreview">输入金额，自动计算剩余可用资金</p>
+
+        <fieldset class="category-fieldset">
+          <legend>花在了哪里</legend>
+          <div class="category-grid" id="categoryGrid"></div>
+        </fieldset>
+
+        <div class="form-grid">
+          <label class="text-field">
+            <span>备注 <small>可选</small></span>
+            <input id="expenseNote" name="note" type="text" maxlength="30" autocomplete="off" placeholder="例如：楼下的牛肉面">
+          </label>
+          <label class="text-field">
+            <span>时间</span>
+            <input id="expenseTime" name="time" type="datetime-local">
+          </label>
+        </div>
+
+        <button class="primary-btn" id="saveExpenseBtn" type="submit" disabled>确认支出</button>
+      </form>
+    </section>
+
+    <section class="sheet" id="detailSheet" role="dialog" aria-modal="true" aria-labelledby="detailCategory" hidden>
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-head">
+        <div>
+          <p class="eyebrow">EXPENSE DETAIL</p>
+          <h2>支出详情</h2>
+        </div>
+        <button class="close-btn" type="button" data-close-sheet="1" aria-label="关闭详情">
+          <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+        </button>
+      </header>
+
+      <div class="detail-hero">
+        <span class="detail-icon" id="detailIcon" aria-hidden="true"></span>
+        <div>
+          <span class="detail-category" id="detailCategory">餐饮</span>
+          <strong class="detail-amount" id="detailAmount">-¥0.00</strong>
+        </div>
+      </div>
+
+      <dl class="detail-list">
+        <div><dt>时间</dt><dd id="detailDate">—</dd></div>
+        <div><dt>备注</dt><dd id="detailNote">—</dd></div>
+        <div><dt>删除后余额</dt><dd id="detailBalance">—</dd></div>
+      </dl>
+
+      <button class="danger-btn" id="deleteExpenseBtn" type="button">
+        <svg class="icon" aria-hidden="true"><use href="#i-trash"></use></svg>
+        <span>删除这笔支出</span>
+      </button>
+    </section>
+
+    <section class="sheet" id="settingsSheet" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" hidden>
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-head">
+        <div>
+          <p class="eyebrow">PREFERENCES</p>
+          <h2 id="settingsTitle">设置</h2>
+        </div>
+        <button class="close-btn" type="button" data-close-sheet="1" aria-label="关闭设置">
+          <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+        </button>
+      </header>
+
+      <div class="settings-card">
+        <button class="settings-row" id="initialRow" type="button" aria-expanded="false" aria-controls="initialEditor">
+          <span class="setting-icon" aria-hidden="true">
+            <svg class="icon"><use href="#i-wallet"></use></svg>
+          </span>
+          <span class="setting-copy"><strong>初始金额</strong><small>用于计算剩余可用资金</small></span>
+          <span class="setting-value" id="settingsInitial">¥0.00</span>
+          <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
+        </button>
+        <div class="inline-editor" id="initialEditor" hidden>
+          <label class="field-label" for="settingsAmount">新的初始金额</label>
+          <div class="money-field">
+            <span aria-hidden="true">¥</span>
+            <input id="settingsAmount" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00">
+          </div>
+          <p class="inline-hint">修改后余额会重新计算，已有支出记录不会被删除。</p>
+          <p class="field-error" id="settingsError" role="alert"></p>
+          <div class="inline-actions">
+            <button class="soft-btn" id="cancelInitialBtn" type="button">取消</button>
+            <button class="primary-btn primary-btn--small" id="saveInitialBtn" type="button">保存</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <button class="settings-row" id="exportBtn" type="button">
+          <span class="setting-icon" aria-hidden="true">
+            <svg class="icon"><use href="#i-download"></use></svg>
+          </span>
+          <span class="setting-copy"><strong>导出账单</strong><small>下载 CSV，可用表格软件打开</small></span>
+          <span class="setting-value setting-value--tag">CSV</span>
+          <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
+        </button>
+
+        <button class="settings-row settings-row--danger" id="clearRow" type="button" aria-expanded="false" aria-controls="clearConfirm">
+          <span class="setting-icon" aria-hidden="true">
+            <svg class="icon"><use href="#i-trash"></use></svg>
+          </span>
+          <span class="setting-copy"><strong>清空支出记录</strong><small>保留初始金额，重新开始</small></span>
+          <span class="setting-value" id="clearCount">0 笔</span>
+          <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
+        </button>
+        <div class="inline-confirm" id="clearConfirm" hidden>
+          <p><strong>确定清空所有支出？</strong></p>
+          <p>此操作无法撤销，初始金额会保留。</p>
+          <div class="inline-actions">
+            <button class="soft-btn" id="cancelClearBtn" type="button">取消</button>
+            <button class="danger-btn danger-btn--small" id="confirmClearBtn" type="button">确认清空</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="settings-note">
+        <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+        所有账单仅存储在当前浏览器的本地空间。清除浏览器数据、使用无痕模式或更换设备都可能导致记录丢失，建议定期导出备份。
+      </p>
+      <p class="app-version">余记 YUJI · v1.0.0</p>
+    </section>
+  </div>
+
+  <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.2 4.2L19 6.8"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2.1 2.1 0 0 1-2.97 2.97l-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21a2.1 2.1 0 0 1-4.2 0v-.1A1.7 1.7 0 0 0 8.6 19.3a1.7 1.7 0 0 0-1.88.34l-.06.06a2.1 2.1 0 1 1-2.97-2.97l.06-.06A1.7 1.7 0 0 0 4.1 14.8 1.7 1.7 0 0 0 2.53 13.8H2.4a2.1 2.1 0 0 1 0-4.2h.1a1.7 1.7 0 0 0 1.57-1.03 1.7 1.7 0 0 0-.34-1.88l-.06-.06a2.1 2.1 0 1 1 2.97-2.97l.06.06a1.7 1.7 0 0 0 1.88.34h.08A1.7 1.7 0 0 0 10.2 2.5V2.4a2.1 2.1 0 1 1 4.2 0v.1a1.7 1.7 0 0 0 1.03 1.57 1.7 1.7 0 0 0 1.88-.34l.06-.06a2.1 2.1 0 1 1 2.97 2.97l-.06.06a1.7 1.7 0 0 0-.34 1.88v.08a1.7 1.7 0 0 0 1.56 1.03h.1a2.1 2.1 0 0 1 0 4.2h-.1A1.7 1.7 0 0 0 19.4 15Z"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m5 9 7 7 7-7"/></symbol>
+    <symbol id="i-arrow-up-right" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10" width="15" height="10.5" rx="2.5"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3.5 7.5A2.5 2.5 0 0 1 6 5h12a2 2 0 0 1 2 2v12H6a2.5 2.5 0 0 1-2.5-2.5v-9Z"/><path d="M3.5 8.5h14A2.5 2.5 0 0 1 20 11v3h-4.5a2 2 0 0 1 0-4H20"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6.5 7l.8 13h9.4l.8-13M10 11v5M14 11v5"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></symbol>
+    <symbol id="cat-food" viewBox="0 0 24 24"><path d="M6 3v7a2 2 0 0 0 4 0V3M8 10v11"/><path d="M17 3c-1.7 1.5-2.5 3.7-2.5 6.2 0 1.8.9 2.8 2.5 2.8s2.5-1 2.5-2.8C19.5 6.7 18.7 4.5 17 3Z"/><path d="M17 12v9"/></symbol>
+    <symbol id="cat-transport" viewBox="0 0 24 24"><rect x="4.5" y="3" width="15" height="15.5" rx="3"/><path d="M4.5 11h15M8 18.5V21M16 18.5V21"/><circle cx="8.5" cy="14.8" r="1" fill="currentColor" stroke="none"/><circle cx="15.5" cy="14.8" r="1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="cat-shopping" viewBox="0 0 24 24"><path d="M5 8h14l-1.1 13H6.1L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></symbol>
+    <symbol id="cat-fun" viewBox="0 0 24 24"><path d="M7 8h10a4 4 0 0 1 3.9 4.9l-1 4.2a2.4 2.4 0 0 1-4.2 1L14 16h-4l-1.7 2.1a2.4 2.4 0 0 1-4.2-1l-1-4.2A4 4 0 0 1 7 8Z"/><path d="M8 12h3M9.5 10.5v3"/><circle cx="15.5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="17.5" cy="14" r="1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="cat-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9 20v-6h6v6"/></symbol>
+    <symbol id="cat-health" viewBox="0 0 24 24"><path d="M12 21s-8-4.6-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6.4-8 11-8 11Z"/><path d="M8.5 11h2l1-2.5 1.5 5 1-2.5h2"/></symbol>
+    <symbol id="cat-study" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5V5.5Z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5A2.5 2.5 0 0 1 4 20.5Z"/></symbol>
+    <symbol id="cat-other" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/></symbol>
+  </svg>
+
+  <noscript>请开启 JavaScript 后使用余记。</noscript>
+  <script src="app.js" defer></script>
+</body>
+</html>
